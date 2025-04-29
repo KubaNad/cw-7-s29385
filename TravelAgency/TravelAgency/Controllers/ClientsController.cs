@@ -36,14 +36,31 @@ public class ClientsController(IDbService dbService) : ControllerBase
         }
     }
     
-    
-
     [HttpPost]
     public async Task<IActionResult> CreateClient(
         [FromBody] ClientCreateDTO body
     )
     {
         var client = await dbService.CreateClientAsync(body);
+        //  O TO ZAPYTAĆ NA ZAJĘCIACH "clients/{client.IdClient}"
         return Created($"clients/{client.IdClient}", client);
     }
+    
+    [HttpPut("{id}/trips/{idTrip}")]
+    public async Task<IActionResult> ReplaceAnimalById(
+        [FromRoute] int id,
+        [FromRoute] int idTrip
+    )
+    {
+        try
+        {
+            await dbService.RegisterClientForTrip(id, idTrip);
+            return NoContent();
+        }
+        catch (CustomExeption e)
+        {
+            return NotFound(e.Message);
+        }
+    }
+    
 }

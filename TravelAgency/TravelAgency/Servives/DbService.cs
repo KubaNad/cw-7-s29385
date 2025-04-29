@@ -81,6 +81,7 @@ public class DbService(IConfiguration config) : IDbService
                 DateFrom = reader.GetDateTime(3),
                 DateTo = reader.GetDateTime(4),
                 MaxPeople = reader.GetInt32(5),
+                // O to zapytać na zajęciach !!!!!!!!!!!
                 RegisteredAt = await reader.IsDBNullAsync(6)
                     ? (int?)null 
                     : reader.GetInt32(6),
@@ -145,5 +146,76 @@ public class DbService(IConfiguration config) : IDbService
             Pesel = client.Pesel
         };
     }
+
+    public async Task RegisterClientForTrip(int id, int idTrip)
+    {
+        await using var connection = new SqlConnection(_connectionString);
+        
+        //czy klient istnieje 
+        const string sql = "SELECT 1 FROM Client where IdClient = @id";
+        await using var command = new SqlCommand(sql, connection);
+        command.Parameters.AddWithValue("@id", id);
+        await connection.OpenAsync();
+        await using var reader = await command.ExecuteReaderAsync();
+        
+        if (!await reader.ReadAsync())
+        {
+            throw new NotFoundException($"Client with id: {id} does not exist");
+        }
+        
+        await reader.DisposeAsync();
+        
+        //czy Wycieczka istnieje 
+        const string sql2 = "SELECT 1 FROM Trip where IdTrip = @idTrip";
+        await using var command2 = new SqlCommand(sql2, connection);
+        command2.Parameters.AddWithValue("@idTrip", idTrip);
+        // await connection.OpenAsync();
+        await using var reader2 = await command2.ExecuteReaderAsync();
+        
+        if (!await reader2.ReadAsync())
+        {
+            throw new NotFoundException($"Trip with id: {idTrip} does not exist");
+        }
+        
+        await reader2.DisposeAsync();
+        
+        //czy są wolne miejsca
+        const string sql3 = "SELECT Count(1) FROM Client_Trip where IdTrip = @idTrip";
+        await using var command3 = new SqlCommand(sql3, connection);
+        command3.Parameters.AddWithValue("@idTrip", idTrip);
+        // await connection.OpenAsync();
+        
+        var participants = Convert.ToInt32(await command3.ExecuteScalarAsync());
+        
+        const string sql4 = "SELECT MaxPeople FROM Trip where IdTrip = @idTrip";
+        await using var command4 = new SqlCommand(sql4, connection);
+        command4.Parameters.AddWithValue("@idTrip", idTrip);
+        // await connection.OpenAsync();
+        
+        var maxPeople = Convert.ToInt32(await command4.ExecuteScalarAsync());
+
+        if (participants >= maxPeople)
+        {
+            throw new CustomExeption("Trip has reached participant limit");
+        }
+        
+        //Przypisanie 
+        
+        const string sql5 = "INSERT INTO Client_Trip(IdClient, IdTrip, RegisteredAt) values (@IdClient, @IdTrip, @RegisteredAt)";
+        await using var command5 = new SqlCommand(sql5, connection);
+        command5.Parameters.AddWithValue("@IdClient", id);
+        command5.Parameters.AddWithValue("@IdTrip", idTrip);
+        command5.Parameters.AddWithValue("@RegisteredAt", DateTime.Now.ToString("yyyyMMdd"));
+
+        var numOfRows = await command5.ExecuteNonQueryAsync();
+        
+        if (numOfRows == 0)
+        {
+            throw new NotFoundException($"Sth went wrong");
+        }
+        
+        
+    }
+    
     
 }
