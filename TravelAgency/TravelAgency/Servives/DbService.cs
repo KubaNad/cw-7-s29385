@@ -147,7 +147,7 @@ public class DbService(IConfiguration config) : IDbService
         };
     }
 
-    public async Task RegisterClientForTrip(int id, int idTrip)
+    public async Task RegisterClientForTripAsync(int id, int idTrip)
     {
         await using var connection = new SqlConnection(_connectionString);
         
@@ -215,6 +215,37 @@ public class DbService(IConfiguration config) : IDbService
         }
         
         
+    }
+
+    public async Task DeleteRegistration(int id, int idTrip)
+    {
+        await using var connection = new SqlConnection(_connectionString);
+        
+        await connection.OpenAsync();
+        
+        const string sql4 = "SELECT 1 FROM Client_Trip WHERE IdClient = @IdClient and IdTrip = @idTrip";
+        await using var command4 = new SqlCommand(sql4, connection);
+        command4.Parameters.AddWithValue("@IdClient", id);
+        command4.Parameters.AddWithValue("@IdTrip", idTrip);
+        
+        await using (var reader = await command4.ExecuteReaderAsync())
+        {
+            if (!reader.HasRows)
+            {
+                throw new NotFoundException($"Nie istnieje takie połaczenie");
+            }
+        }
+        
+        const string sql2 = "delete from Client_Trip where IdClient = @IdClient and IdTrip = @idTrip";
+        await using var command2 = new SqlCommand(sql2, connection);
+        command2.Parameters.AddWithValue("@IdClient", id);
+        command2.Parameters.AddWithValue("@IdTrip", idTrip);
+        var numOfRows = await command2.ExecuteNonQueryAsync();
+
+        if (numOfRows == 0)
+        {
+            throw new CustomExeption("Sth went wrong");
+        }
     }
     
     

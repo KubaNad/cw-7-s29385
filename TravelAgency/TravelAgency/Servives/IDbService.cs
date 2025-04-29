@@ -9,6 +9,6 @@ public interface IDbService
     public Task<IEnumerable<ClientWithTripsGetDTO>> GetClientTripsDetailsByIdAsync(int id);
     public Task<ClientGetDTO> GetClientDetailsByIdAsync(int id);
     public Task<Client> CreateClientAsync(ClientCreateDTO client);
-    public Task RegisterClientForTrip(int id,int idTrip);
-
+    public Task RegisterClientForTripAsync(int id,int idTrip);
+    public Task DeleteRegistration(int id,int idTrip);
 }

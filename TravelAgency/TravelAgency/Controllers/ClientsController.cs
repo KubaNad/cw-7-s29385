@@ -47,20 +47,42 @@ public class ClientsController(IDbService dbService) : ControllerBase
     }
     
     [HttpPut("{id}/trips/{idTrip}")]
-    public async Task<IActionResult> ReplaceAnimalById(
+    public async Task<IActionResult> RegisterClientForTrip(
         [FromRoute] int id,
         [FromRoute] int idTrip
     )
     {
         try
         {
-            await dbService.RegisterClientForTrip(id, idTrip);
+            await dbService.RegisterClientForTripAsync(id, idTrip);
             return NoContent();
         }
         catch (CustomExeption e)
         {
+            return BadRequest(e.Message);
+        }
+    }
+    
+    [HttpDelete("{id}/trips/{idTrip}")]
+    public async Task<IActionResult> ReplaceAnimalB(
+        [FromRoute] int id,
+        [FromRoute] int idTrip
+    )
+    {
+        try
+        {
+            await dbService.DeleteRegistration(id, idTrip);
+            return NoContent();
+        }
+        catch (CustomExeption e)
+        {
+            return BadRequest(e.Message);
+        }catch (NotFoundException e)
+        {
             return NotFound(e.Message);
         }
     }
+    
+    
     
 }
