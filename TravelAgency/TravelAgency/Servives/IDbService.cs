@@ -5,4 +5,5 @@ namespace TravelAgency.Servives;
 public interface IDbService
 {
     public Task<IEnumerable<TripGetDTO>> GetTripsDetailsAsync();
+    public Task<IEnumerable<ClientWithTripsGetDTO>> GetClientTripsDetailsByIdAsync(int id);
 }

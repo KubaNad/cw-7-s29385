@@ -4,7 +4,7 @@ using TravelAgency.Servives;
 namespace TravelAgency.Controllers;
 
 [ApiController]
-[Route("[controller]")]
+[Route("api/[controller]")]
 public class TripsController(IDbService dbService) : ControllerBase
 {
     [HttpGet]
